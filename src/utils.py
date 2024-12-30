@@ -3,8 +3,26 @@ import boto3
 import os
 from dotenv import load_dotenv
 from io import StringIO
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
 
 load_dotenv()
+
+
+def load_and_prepare_data_spark(spark, file_path):
+    df = spark.read.csv(file_path, header=True, inferSchema=True)
+    df = df.withColumn("Date", F.to_date("Date"))
+    window_spec = Window.partitionBy("ticker").orderBy("Date")
+    df = df.withColumn("close", F.last("close", ignorenulls=True).over(window_spec))
+    df = df.withColumn(
+        "close",
+        F.when(
+            F.col("close").isNull(),
+            F.first("close", ignorenulls=True).over(window_spec),
+        ).otherwise(F.col("close")),
+    )
+
+    return df
 
 
 def load_and_prepare_data_pandas(csv_file_path):
