@@ -2,3 +2,4 @@ pyspark
 boto3
 pandas
 numpy
+ruff
