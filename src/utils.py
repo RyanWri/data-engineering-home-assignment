@@ -59,7 +59,7 @@ def ensure_s3_bucket_exists(bucket_name):
     try:
         s3.head_bucket(Bucket=bucket_name)
         print(f"Bucket {bucket_name} already exists.")
-    except Exception as e:
+    except Exception:
         print(f"Bucket {bucket_name} does not exist. Creating...")
         s3.create_bucket(
             Bucket=bucket_name,

@@ -35,11 +35,8 @@ def calc_question_1_spark(df):
         .agg(F.mean("daily_return").alias("average_daily_return"))
         .withColumn("average_daily_return", F.round("average_daily_return", 5))
     )
-    result = avg_daily_return.groupBy("Date").agg(
-        F.collect_list(F.struct("ticker", "average_daily_return")).alias(
-            "average_return"
-        )
-    )
+    # Flatten average_return for CSV compatibility
+    result = avg_daily_return.select("Date", "ticker", "average_daily_return")
     return result
 
 

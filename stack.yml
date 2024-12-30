@@ -61,3 +61,59 @@ Resources:
       MaxRetries: 0
       NumberOfWorkers: 2
       WorkerType: G.1X
+
+  Question1Crawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: "question_1_crawler_ranw"
+      Role: !GetAtt GlueJobRole.Arn
+      DatabaseName: !Ref GlueDatabaseName
+      Targets:
+        S3Targets:
+          - Path: !Sub "s3://${BucketName}/results/question_1/"
+      TablePrefix: "question_1_"
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: LOG
+
+  Question2Crawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: "question_2_crawler_ranw"
+      Role: !GetAtt GlueJobRole.Arn
+      DatabaseName: !Ref GlueDatabaseName
+      Targets:
+        S3Targets:
+          - Path: !Sub "s3://${BucketName}/results/question_2/"
+      TablePrefix: "question_2_"
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: LOG
+
+  Question3Crawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: "question_3_crawler_ranw"
+      Role: !GetAtt GlueJobRole.Arn
+      DatabaseName: !Ref GlueDatabaseName
+      Targets:
+        S3Targets:
+          - Path: !Sub "s3://${BucketName}/results/question_3/"
+      TablePrefix: "question_3_"
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: LOG
+
+  Question4Crawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: "question_4_crawler_ranw"
+      Role: !GetAtt GlueJobRole.Arn
+      DatabaseName: !Ref GlueDatabaseName
+      Targets:
+        S3Targets:
+          - Path: !Sub "s3://${BucketName}/results/question_4/"
+      TablePrefix: "question_4_"
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: LOG
