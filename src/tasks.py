@@ -42,6 +42,15 @@ def calc_question_3(df):
     return most_volatile.to_frame().transpose()
 
 
+def calc_question_4(df):
+    df["30_day_return"] = df.groupby("ticker")["close"].transform(
+        lambda x: (x - x.shift(30)) / x.shift(30) * 100
+    )
+    df = df.dropna(subset=["30_day_return"])
+    top_3_returns = df.nlargest(3, "30_day_return")[["ticker", "Date"]]
+    return top_3_returns.reset_index(drop=True)
+
+
 if __name__ == "__main__":
     csv_file_path = os.path.join(
         os.path.dirname(os.path.dirname(__file__)), "stocks_data.csv"
@@ -52,7 +61,7 @@ if __name__ == "__main__":
 
     # question 1
     output_file_path = os.path.join(
-        os.path.dirname(csv_file_path), "output", "average_daily_return.csv"
+        os.path.dirname(csv_file_path), "output", "question_1_results.csv"
     )
 
     data = load_and_prepare_data(csv_file_path)
@@ -61,7 +70,7 @@ if __name__ == "__main__":
 
     # question 2
     output_file_path = os.path.join(
-        os.path.dirname(csv_file_path), "output", "highest_average_daily_worth.csv"
+        os.path.dirname(csv_file_path), "output", "question_2_results.csv"
     )
     data = load_and_prepare_data(csv_file_path)
     highest_worth_stock = calc_question_2(data)
@@ -69,8 +78,16 @@ if __name__ == "__main__":
 
     # question 3
     output_file_path = os.path.join(
-        os.path.dirname(csv_file_path), "output", "most_volatile_stock.csv"
+        os.path.dirname(csv_file_path), "output", "question_3_results.csv"
     )
     data = load_and_prepare_data(csv_file_path)
     most_volatile_stock = calc_question_3(data)
     save_to_csv(most_volatile_stock, output_file_path)
+
+    # question 4
+    output_file_path = os.path.join(
+        os.path.dirname(csv_file_path), "output", "question_4_results.csv"
+    )
+    data = load_and_prepare_data(csv_file_path)
+    top_3_30_day_returns = calc_question_4(data)
+    save_to_csv(top_3_30_day_returns, output_file_path)
