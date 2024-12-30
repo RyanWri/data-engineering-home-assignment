@@ -1,48 +1,119 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: CloudFormation template to create a Lambda function that prints "Hello, World!".
+Description: AWS Glue Catalog Database setup for Data Engineering Assignment
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: Name of the S3 bucket
+    Default: "data-engineer-assignment-ranw"
+
+  GlueDatabaseName:
+    Type: String
+    Description: Name of the Glue Catalog Database
+    Default: "data_engineer_assignment_ranw"
 
 Resources:
-    LambdaExecutionRole:
-        Type: "AWS::IAM::Role"
-        Properties:
-            AssumeRolePolicyDocument:
-                Version: "2012-10-17"
-                Statement:
-                    - Effect: "Allow"
-                      Principal:
-                          Service:
-                              - "lambda.amazonaws.com"
-                      Action: "sts:AssumeRole"
-            Policies:
-                - PolicyName: "LambdaExecutionPolicy"
-                  PolicyDocument:
-                      Version: "2012-10-17"
-                      Statement:
-                          - Effect: "Allow"
-                            Action:
-                                - "logs:CreateLogGroup"
-                                - "logs:CreateLogStream"
-                                - "logs:PutLogEvents"
-                            Resource: "arn:aws:logs:*:*:*"
+  # Glue Catalog Database
+  GlueCatalogDatabase:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref "AWS::AccountId"
+      DatabaseInput:
+        Name: !Ref "GlueDatabaseName"
 
-    HelloWorldLambda:
-        Type: "AWS::Lambda::Function"
-        Properties:
-            FunctionName: "HelloWorldFunction"
-            Handler: "index.handler"
-            Role: !GetAtt LambdaExecutionRole.Arn
-            Runtime: "python3.9"
-            Code:
-                ZipFile: |
-                    def handler(event, context):
-                        print("Hello, World!")
-            Timeout: 30
-            MemorySize: 128
+  # Glue Job Role
+  GlueJobRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: "glue.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "GlueJobPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:*"
+                  - "logs:*"
+                  - "glue:*"
+                Resource:
+                  - !Sub "arn:aws:s3:::${BucketName}/*"
+                  - !Sub "arn:aws:s3:::${BucketName}"
+                  - "*"
 
-Outputs:
-    LambdaFunctionName:
-        Description: "Name of the Lambda function created"
-        Value: !Ref HelloWorldLambda
-    LambdaExecutionRoleArn:
-        Description: "ARN of the Lambda execution role"
-        Value: !GetAtt LambdaExecutionRole.Arn
+  # Glue Job
+  GlueJob:
+    Type: AWS::Glue::Job
+    Properties:
+      Name: "data_engineer_assignment_ranw"
+      Role: !GetAtt GlueJobRole.Arn
+      Command:
+        Name: "glueetl"
+        ScriptLocation: !Sub "s3://${BucketName}/scripts/glue_job.py"
+        PythonVersion: "3"
+      GlueVersion: "3.0"
+      MaxRetries: 0
+      NumberOfWorkers: 2
+      WorkerType: G.1X
+
+  Question1Crawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: "question_1_crawler_ranw"
+      Role: !GetAtt GlueJobRole.Arn
+      DatabaseName: !Ref GlueDatabaseName
+      Targets:
+        S3Targets:
+          - Path: !Sub "s3://${BucketName}/results/question_1/"
+      TablePrefix: "question_1_"
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: LOG
+
+  Question2Crawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: "question_2_crawler_ranw"
+      Role: !GetAtt GlueJobRole.Arn
+      DatabaseName: !Ref GlueDatabaseName
+      Targets:
+        S3Targets:
+          - Path: !Sub "s3://${BucketName}/results/question_2/"
+      TablePrefix: "question_2_"
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: LOG
+
+  Question3Crawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: "question_3_crawler_ranw"
+      Role: !GetAtt GlueJobRole.Arn
+      DatabaseName: !Ref GlueDatabaseName
+      Targets:
+        S3Targets:
+          - Path: !Sub "s3://${BucketName}/results/question_3/"
+      TablePrefix: "question_3_"
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: LOG
+
+  Question4Crawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: "question_4_crawler_ranw"
+      Role: !GetAtt GlueJobRole.Arn
+      DatabaseName: !Ref GlueDatabaseName
+      Targets:
+        S3Targets:
+          - Path: !Sub "s3://${BucketName}/results/question_4/"
+      TablePrefix: "question_4_"
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: LOG
